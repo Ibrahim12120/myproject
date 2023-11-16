@@ -1,0 +1,69 @@
+---
+- name: Install Docker and Nmap
+  hosts: node2
+  become: true  # Run tasks as sudo
+
+  tasks:
+
+    - name: Download and install Docker Compose
+      ansible.builtin.get_url:
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-{{ ansible_system | lower }}-{{ ansible_machine }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start Docker Service
+      systemd:
+        name: docker
+        state: started
+
+    - name: Install Nmap
+      yum:
+        name: nmap
+        state: present
+    - name: Log in to Docker Hub
+      community.general.docker_login:
+        username: ibrahim1212
+        password: 46487087Kk1$
+        registry_url: https://index.docker.io/v1/
+
+    - name: Copy HTML/CSS files to Node-2
+      ansible.builtin.copy:
+        src: /home/ec2-user/docker
+        dest: /home/ec2-user
+
+    - name: Start Docker Compose
+      ansible.builtin.command: 
+        cmd: "docker-compose -f /home/ec2-user/docker/docker-compose.yml up -d --build"
+
+    - name: Push to Docker Hub
+      ansible.builtin.command:
+        cmd: "docker-compose -f /home/ec2-user/docker/docker-compose.yml push"
+
+    - name: GitHub Login
+      uri:
+        url: https://api.github.com/user/repos
+        method: POST
+        body: '{"login":"musama78","token":"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"}'
+        force_basic_auth: yes
+        status_code: 200
+        return_content: yes
+        headers:
+          Content-Type: "application/json"
+      register: github_login_result
+
+    - name: Change to Project Directory
+      ansible.builtin.command:
+        cmd: "cd /home/ec2-user/docker"
+
+    - name: Push Changes to GitHub
+      ansible.builtin.git:
+        repo: https://github.com/musama78/myproject.git
+        push: yes
+        remote: origin
+        version: main
+      become_user: root

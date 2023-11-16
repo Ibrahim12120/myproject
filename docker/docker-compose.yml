@@ -1,0 +1,14 @@
+version: '3'
+services:
+  nginx:
+    build:
+      context: ./webserver
+    container_name: project-container
+    hostname: project-con
+    image: ibrahim1212/myproject:latest
+    ports:
+      - "8080:80"
+    networks:
+      - myproject_net
+networks:
+  myproject_net:
