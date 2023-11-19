@@ -1,5 +1,5 @@
 ---
-- name: Install Docker and Nmap
+- name: Install Docker and Deploy
   hosts: node2
   become: true  # Run tasks as sudo
 
